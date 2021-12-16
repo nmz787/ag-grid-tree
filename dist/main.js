@@ -245,6 +245,9 @@ var rowData = [
 let idCount = 0;
 add_id_to_data_rows(rowData);
 
+let id_to_data_dict = {};
+create_id_to_data_item_map(rowData, id_to_data_dict);
+
 class TreeCellRenderer{
   init(e) {
     this.eGui = document.createElement("span");
@@ -276,19 +279,14 @@ var gridOptions = {
   rowData: rowData
 };
 
-function updateData(e) {
-  let a = recursiveFindById(rowData, e);
-  if (a){
-    a.expanded = !a.expanded;
+function updateData(data_id) {
+  let data_item = id_to_data_dict[data_id];
+  if (data_item){
+    data_item.expanded = !data_item.expanded;
     rowDataExpanded = [];
     makeDataResurcive(rowData, 0);
     gridOptions.api.setRowData(rowDataExpanded);
   }
-}
-
-function recursiveFindById(e, a) {
-  let n = e.find(e => e.id === a);
-  return n || (e.every(e => !(n = recursiveFindById(e.children, a))), n);
 }
 
 function makeDataResurcive(e, a) {
@@ -306,10 +304,19 @@ function makeDataResurcive(e, a) {
 function add_id_to_data_rows(data_record_list) {
   data_record_list.forEach(data_item => {
     data_item.id = idCount;
+    data_item.expanded=false;
     idCount++;
     add_id_to_data_rows(data_item.children);
   });
 }
+
+function create_id_to_data_item_map(data_record_list, dict) {
+  data_record_list.forEach(data_item => {
+    dict[data_item.id] = data_item;
+    create_id_to_data_item_map(data_item.children, dict);
+  });
+}
+
 
 document.addEventListener("DOMContentLoaded", function() {
   var e = document.querySelector("#myGrid");
