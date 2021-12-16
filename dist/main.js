@@ -243,7 +243,7 @@ var rowData = [
 ];
 
 let idCount = 0;
-addIdInDataResurcive(rowData);
+add_id_to_data_rows(rowData);
 
 class TreeCellRenderer{
   init(e) {
@@ -258,7 +258,7 @@ class TreeCellRenderer{
     } else {
       this.eGui.innerHTML = e.value;
     }
-    this.eventListener = function(){ updateData(e.data.customId); };
+    this.eventListener = function(){ updateData(e.data.id); };
     this.eGui.addEventListener("click", this.eventListener);
   }
 
@@ -278,15 +278,16 @@ var gridOptions = {
 
 function updateData(e) {
   let a = recursiveFindById(rowData, e);
-  a &&
-    ((a.expanded = !a.expanded),
-    (rowDataExpanded = []),
-    makeDataResurcive(rowData, 0),
-    gridOptions.api.setRowData(rowDataExpanded));
+  if (a){
+    a.expanded = !a.expanded;
+    rowDataExpanded = [];
+    makeDataResurcive(rowData, 0);
+    gridOptions.api.setRowData(rowDataExpanded);
+  }
 }
 
 function recursiveFindById(e, a) {
-  let n = e.find(e => e.customId === a);
+  let n = e.find(e => e.id === a);
   return n || (e.every(e => !(n = recursiveFindById(e.children, a))), n);
 }
 
@@ -302,12 +303,13 @@ function makeDataResurcive(e, a) {
   });
 }
 
-function addIdInDataResurcive(e) {
-  e.forEach(e => {
-    (e.customId = idCount), idCount++, addIdInDataResurcive(e.children);
+function add_id_to_data_rows(data_record_list) {
+  data_record_list.forEach(data_item => {
+    data_item.id = idCount;
+    idCount++;
+    add_id_to_data_rows(data_item.children);
   });
 }
-
 
 document.addEventListener("DOMContentLoaded", function() {
   var e = document.querySelector("#myGrid");
