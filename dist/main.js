@@ -11,8 +11,8 @@ var columnDefs = [
   { headerName: "apr", field: "apr" }
 ];
 
-let showBlankForExpanded = !0,
-  blankForExpandedObject = {
+let showBlankForExpanded = !0;
+let blankForExpandedObject = {
     dec: "",
     nov: "",
     oct: "",
@@ -22,7 +22,8 @@ let showBlankForExpanded = !0,
     jun: "",
     may: "",
     apr: ""
-  };
+};
+
 var rowData = [
   {
     type: "balance sheet",
@@ -271,7 +272,6 @@ class TreeCellRenderer{
 }
 
 
-
 var gridOptions = {
   columnDefs: columnDefs,
   defaultColDef: { sortable: !0, resizable: !0 },
@@ -284,27 +284,29 @@ function updateData(data_id) {
   if (data_item){
     data_item.expanded = !data_item.expanded;
     rowDataExpanded = [];
-    makeDataResurcive(rowData, 0);
+    makeDataRecursive(rowData, rowDataExpanded, 0);
     gridOptions.api.setRowData(rowDataExpanded);
   }
 }
 
-function makeDataResurcive(e, a) {
-  e.forEach(e => {
-    (e.level = a),
-      e.children.length > 0 &&
-        e.expanded &&
-        showBlankForExpanded &&
-        (e = { ...e, ...blankForExpandedObject }),
-      rowDataExpanded.push(e),
-      e.expanded && makeDataResurcive(e.children, a + 10);
+function makeDataRecursive(input_data_list, output_data_list, current_indent) {
+  input_data_list.forEach(data_item => {
+    data_item.level = current_indent;
+    data_items = data_item;
+    if (data_item.children.length > 0 && data_item.expanded && showBlankForExpanded){
+      data_items = { ...data_item, ...blankForExpandedObject };
+    }
+    output_data_list.push(data_items);
+    if(data_items.expanded){
+      makeDataRecursive(data_items.children, output_data_list, current_indent + 15);
+    }
   });
 }
 
 function add_id_to_data_rows(data_record_list) {
   data_record_list.forEach(data_item => {
     data_item.id = idCount;
-    data_item.expanded=false;
+    data_item.expanded=false; //setting this true doesn't quite work as you might first think
     idCount++;
     add_id_to_data_rows(data_item.children);
   });
