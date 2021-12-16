@@ -1,5 +1,5 @@
 var columnDefs = [
-  { headerName: "", field: "type", cellRenderer: "medalCellRenderer" },
+  { headerName: "", field: "type", cellRenderer: "TreeCellRenderer" },
   { headerName: "dec", field: "dec" },
   { headerName: "nov", field: "nov" },
   { headerName: "oct", field: "oct" },
@@ -10,6 +10,7 @@ var columnDefs = [
   { headerName: "may", field: "may" },
   { headerName: "apr", field: "apr" }
 ];
+
 let showBlankForExpanded = !0,
   blankForExpandedObject = {
     dec: "",
@@ -34,7 +35,7 @@ var rowData = [
     jun: "34534534",
     may: "3452332",
     apr: "1245665",
-    childrens: [
+    children: [
       {
         type: "Assets",
         dec: "123123",
@@ -46,7 +47,7 @@ var rowData = [
         jun: "342",
         may: "8767",
         apr: "567576",
-        childrens: [
+        children: [
           {
             type: "Motgage loans held for investment, net",
             dec: "1",
@@ -58,7 +59,7 @@ var rowData = [
             jun: "45",
             may: "34",
             apr: "12",
-            childrens: [
+            children: [
               {
                 type: "xyz",
                 dec: "5454",
@@ -70,7 +71,7 @@ var rowData = [
                 jun: "656",
                 may: "45645",
                 apr: "6567",
-                childrens: []
+                children: []
               }
             ]
           },
@@ -85,7 +86,7 @@ var rowData = [
             jun: "4521",
             may: "3421",
             apr: "1221",
-            childrens: [
+            children: [
               {
                 type: "abc",
                 dec: "988",
@@ -97,7 +98,7 @@ var rowData = [
                 jun: "232",
                 may: "121",
                 apr: "3434",
-                childrens: []
+                children: []
               }
             ]
           },
@@ -112,7 +113,7 @@ var rowData = [
             jun: "452551",
             may: "342551",
             apr: "122551",
-            childrens: [
+            children: [
               {
                 type: "1789989 REO properties",
                 dec: "33",
@@ -124,7 +125,7 @@ var rowData = [
                 jun: "676",
                 may: "5656",
                 apr: "4545",
-                childrens: [
+                children: [
                   {
                     type: "1787099 npa clearing account - reo",
                     dec: "5434345",
@@ -136,7 +137,7 @@ var rowData = [
                     jun: "998788",
                     may: "3456",
                     apr: "456676",
-                    childrens: [
+                    children: [
                       {
                         type: "18999882 reo properties accounting adjustment",
                         dec: "5434345",
@@ -148,7 +149,7 @@ var rowData = [
                         jun: "998788",
                         may: "3456",
                         apr: "456676",
-                        childrens: [
+                        children: [
                           {
                             type: "18999882 01  roc reo properties",
                             dec: "34345",
@@ -160,7 +161,7 @@ var rowData = [
                             jun: "9988",
                             may: "346",
                             apr: "476",
-                            childrens: []
+                            children: []
                           },
                           {
                             type: "18999882 02  reo properties carry over",
@@ -173,7 +174,7 @@ var rowData = [
                             jun: "988",
                             may: "36",
                             apr: "46",
-                            childrens: []
+                            children: []
                           },
                           {
                             type: "18999882 03  reo day 1 cost bases",
@@ -186,7 +187,7 @@ var rowData = [
                             jun: "9288",
                             may: "326",
                             apr: "436",
-                            childrens: []
+                            children: []
                           }
                         ]
                       }
@@ -209,7 +210,7 @@ var rowData = [
         jun: "4545",
         may: "4545",
         apr: "4545",
-        childrens: []
+        children: []
       },
       {
         type: "Equity",
@@ -222,7 +223,7 @@ var rowData = [
         jun: "2343435",
         may: "345345",
         apr: "987888",
-        childrens: []
+        children: []
       }
     ]
   },
@@ -237,18 +238,44 @@ var rowData = [
     jun: "5675",
     may: "456",
     apr: "34534",
-    childrens: []
+    children: []
   }
 ];
+
 let idCount = 0;
 addIdInDataResurcive(rowData);
+
+class TreeCellRenderer{
+  init(e) {
+    this.eGui = document.createElement("span");
+    this.eGui.style = `padding-left:${e.data.level}px`;
+    if (e.data.children.length>0) {
+        if (e.data.expanded) {
+          this.eGui.innerHTML = '- ' + e.value;
+        } else {
+          this.eGui.innerHTML = '+ ' + e.value;
+        }
+    } else {
+      this.eGui.innerHTML = e.value;
+    }
+    this.eventListener = function(){ updateData(e.data.customId); };
+    this.eGui.addEventListener("click", this.eventListener);
+  }
+
+  getGui() {
+    return this.eGui;
+  }
+}
+
+
+
 var gridOptions = {
   columnDefs: columnDefs,
   defaultColDef: { sortable: !0, resizable: !0 },
-  components: { medalCellRenderer: MedalCellRenderer },
+  components: { TreeCellRenderer: TreeCellRenderer },
   rowData: rowData
 };
-function MedalCellRenderer() {}
+
 function updateData(e) {
   let a = recursiveFindById(rowData, e);
   a &&
@@ -257,43 +284,32 @@ function updateData(e) {
     makeDataResurcive(rowData, 0),
     gridOptions.api.setRowData(rowDataExpanded));
 }
+
 function recursiveFindById(e, a) {
   let n = e.find(e => e.customId === a);
-  return n || (e.every(e => !(n = recursiveFindById(e.childrens, a))), n);
+  return n || (e.every(e => !(n = recursiveFindById(e.children, a))), n);
 }
+
 function makeDataResurcive(e, a) {
   e.forEach(e => {
     (e.level = a),
-      e.childrens.length > 0 &&
+      e.children.length > 0 &&
         e.expanded &&
         showBlankForExpanded &&
         (e = { ...e, ...blankForExpandedObject }),
       rowDataExpanded.push(e),
-      e.expanded && makeDataResurcive(e.childrens, a + 10);
+      e.expanded && makeDataResurcive(e.children, a + 10);
   });
 }
+
 function addIdInDataResurcive(e) {
   e.forEach(e => {
-    (e.customId = idCount), idCount++, addIdInDataResurcive(e.childrens);
+    (e.customId = idCount), idCount++, addIdInDataResurcive(e.children);
   });
 }
-(MedalCellRenderer.prototype.init = function(e) {
-  (this.eGui = document.createElement("span")),
-    (this.eGui.style = `padding-left:${e.data.level}px`),
-    e.data.childrens.length > 0
-      ? e.data.expanded
-        ? (this.eGui.innerHTML = '<i class="fas fa-minus"></i> ' + e.value)
-        : (this.eGui.innerHTML = '<i class="fas fa-plus"></i> ' + e.value)
-      : (this.eGui.innerHTML = e.value),
-    (this.eventListener = function() {
-      updateData(e.data.customId);
-    }),
-    this.eGui.addEventListener("click", this.eventListener);
-}),
-  (MedalCellRenderer.prototype.getGui = function() {
-    return this.eGui;
-  }),
-  document.addEventListener("DOMContentLoaded", function() {
-    var e = document.querySelector("#myGrid");
-    new agGrid.Grid(e, gridOptions), gridOptions.api.sizeColumnsToFit();
-  });
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  var e = document.querySelector("#myGrid");
+  new agGrid.Grid(e, gridOptions), gridOptions.api.sizeColumnsToFit();
+});
